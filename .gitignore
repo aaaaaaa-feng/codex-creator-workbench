@@ -1,0 +1,34 @@
+.DS_Store
+*.log
+
+# Local creator settings and Codex state
+AGENTS.md
+选题看板.md
+web/.env*
+!web/.env.example
+web/.workbench/
+
+# User-generated content stays local
+00_收件箱/*
+!00_收件箱/说明.md
+01_待选题/*
+!01_待选题/说明.md
+02_制作中/*
+!02_制作中/说明.md
+03_已发布/*
+!03_已发布/说明.md
+04_复盘/*
+!04_复盘/说明.md
+
+# Web dependencies and build output
+web/node_modules/
+web/dist/
+web/.next/
+web/.vinext/
+web/.wrangler/
+web/coverage/
+web/.git/
+
+# Local review artifacts
+audit/
+web/audit/

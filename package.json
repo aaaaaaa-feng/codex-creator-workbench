@@ -1,0 +1,16 @@
+{
+  "name": "codex-creator-workbench",
+  "version": "0.2.0",
+  "private": true,
+  "description": "A local-first AI creator workbench powered by the Codex SDK.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "setup": "node scripts/setup.mjs",
+    "test": "npm --prefix web test",
+    "lint": "npm --prefix web run lint"
+  }
+}
