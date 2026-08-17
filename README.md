@@ -1,6 +1,6 @@
 # Codex Creator Workbench
 
-[![CI](https://github.com/xue-feng-bai/codex-creator-workbench/actions/workflows/ci.yml/badge.svg)](https://github.com/xue-feng-bai/codex-creator-workbench/actions/workflows/ci.yml)
+[![CI](https://github.com/aaaaaaa-feng/codex-creator-workbench/actions/workflows/ci.yml/badge.svg)](https://github.com/aaaaaaa-feng/codex-creator-workbench/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2563eb.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A522.13-339933.svg)](https://nodejs.org/)
 
@@ -111,7 +111,7 @@ AI 创作真正耗时的往往不是“让 AI 写一段话”，而是每天重�
 ### 方法二：Git 克隆，适合开发者
 
 ```bash
-git clone https://github.com/xue-feng-bai/codex-creator-workbench.git
+git clone https://github.com/aaaaaaa-feng/codex-creator-workbench.git
 cd codex-creator-workbench
 npm start
 ```
@@ -279,7 +279,7 @@ codex-creator-workbench/
 - [ ] 多人审稿、批注和角色权限。
 - [ ] 素材版权、AI 生成标记和平台风险检查。
 
-欢迎在 [Issues](https://github.com/xue-feng-bai/codex-creator-workbench/issues) 提交需求。请描述你的实际创作流程和卡点，而不只是功能名称。
+欢迎在 [Issues](https://github.com/aaaaaaa-feng/codex-creator-workbench/issues) 提交需求。请描述你的实际创作流程和卡点，而不只是功能名称。
 
 ## 开发
 

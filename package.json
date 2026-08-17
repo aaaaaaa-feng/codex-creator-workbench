@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xue-feng-bai/codex-creator-workbench.git"
+    "url": "https://github.com/aaaaaaa-feng/codex-creator-workbench.git"
   },
   "bugs": {
-    "url": "https://github.com/xue-feng-bai/codex-creator-workbench/issues"
+    "url": "https://github.com/aaaaaaa-feng/codex-creator-workbench/issues"
   },
-  "homepage": "https://github.com/xue-feng-bai/codex-creator-workbench#readme",
+  "homepage": "https://github.com/aaaaaaa-feng/codex-creator-workbench#readme",
   "engines": {
     "node": ">=22.13.0"
   },
