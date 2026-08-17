@@ -47,7 +47,14 @@ test("keeps the local Codex bridge and removes starter artifacts", async () => {
   assert.match(layout, /lang="zh-CN"/);
   assert.match(workbench, /http:\/\/127\.0\.0\.1:4317/);
   assert.match(workbench, /artifact-template-creator/);
+  assert.match(workbench, /ReactMarkdown/);
+  assert.match(workbench, /复制正文/);
+  assert.match(workbench, /用 Codex 修改/);
+  assert.match(workbench, /阅读模式/);
+  assert.match(workbench, /openRevisionConversation/);
   assert.match(packageJson, /@openai\/codex-sdk/);
+  assert.match(packageJson, /react-markdown/);
+  assert.match(packageJson, /remark-gfm/);
   assert.match(packageJson, /"workbench": "node scripts\/start-workbench\.mjs"/);
   assert.match(bridge, /sandboxMode: "workspace-write"/);
   assert.match(bridge, /approvalPolicy: "never"/);

@@ -54,6 +54,8 @@ cp web/.env.example web/.env.local
 - 像 Codex 对话框一样直接输入自然语言指令。
 - 通过官方 Codex SDK 继续使用 AIHOT MCP、项目规则和本地文件能力。
 - 把一份简报拆成 1–5 条独立热点，支持展开、多选和批量生成科普稿。
+- 把 Markdown 稿件和 Codex 回复渲染为只读阅读版，支持一键复制无 Markdown 符号的正文。
+- 从稿件详情直接带上当前文件唤起 Codex 对话，填写要求后即可修改原稿。
 - 调用 `$artifact-template-creator` 生成三张竖版和三张横版封面，归档到主题的 `封面/` 目录。
 
 页面本身位于 `web/`，内容仍保存在当前项目根目录，不会锁进某个网页数据库。

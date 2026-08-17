@@ -8,6 +8,8 @@ import {
   useRef,
   useState,
 } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_WORKBENCH_API || "http://127.0.0.1:4317";
@@ -115,6 +117,31 @@ function createMessage(
   return { id, role, text, createdAt: new Date().toISOString() };
 }
 
+function MarkdownContent({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      skipHtml
+      components={{
+        a: ({ href, children }) => {
+          const isExternal = /^https?:\/\//i.test(href || "");
+          return (
+            <a
+              href={href}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noreferrer" : undefined}
+            >
+              {children}
+            </a>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+}
+
 export default function Workbench() {
   const [view, setView] = useState<ViewId>("dashboard");
   const [health, setHealth] = useState<Health | null>(null);
@@ -134,8 +161,11 @@ export default function Workbench() {
   const [running, setRunning] = useState(false);
   const [activity, setActivity] = useState("等待你的指令");
   const [bridgeError, setBridgeError] = useState("");
+  const [copiedPath, setCopiedPath] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const previewReaderRef = useRef<HTMLDivElement>(null);
+  const chatPanelRef = useRef<HTMLElement>(null);
 
   const loadHealth = useCallback(async () => {
     try {
@@ -233,6 +263,7 @@ export default function Workbench() {
 
   const openItem = useCallback(async (item: LibraryItem) => {
     setSelected(item);
+    setCopiedPath(null);
     if (item.type === "cover") {
       setFilePreview({ relativePath: item.relativePath, isImage: true });
       return;
@@ -272,6 +303,49 @@ export default function Workbench() {
     },
     [health?.coverSkillName, selected],
   );
+
+  const copyPreviewContent = useCallback(async () => {
+    const relativePath = filePreview?.relativePath;
+    const content = previewReaderRef.current?.innerText.trim() || filePreview?.content?.trim();
+    if (!relativePath || !content) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(content);
+      } else {
+        const fallback = document.createElement("textarea");
+        fallback.value = content;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "fixed";
+        fallback.style.opacity = "0";
+        document.body.appendChild(fallback);
+        fallback.select();
+        const copied = document.execCommand("copy");
+        fallback.remove();
+        if (!copied) throw new Error("copy unavailable");
+      }
+      setCopiedPath(relativePath);
+      window.setTimeout(() => {
+        setCopiedPath((current) => (current === relativePath ? null : current));
+      }, 1800);
+    } catch {
+      setBridgeError("复制失败，请选中文案后手动复制。");
+    }
+  }, [filePreview]);
+
+  const openRevisionConversation = useCallback(() => {
+    if (!selected || selected.type === "cover") return;
+    const contentLabel = selected.type === "script" ? "口播稿" : "文案";
+    const revisionPrompt = `请读取「${selected.relativePath}」，并根据我接下来补充的要求修改这篇${contentLabel}。修改时直接更新原文件，保留事实来源与风险边界；不要改动无关文件。\n\n修改要求：`;
+    setPrompt(revisionPrompt);
+    setActivity(`已载入：${selected.title}`);
+    window.setTimeout(() => {
+      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const composer = composerRef.current;
+      composer?.focus();
+      composer?.setSelectionRange(revisionPrompt.length, revisionPrompt.length);
+    }, 0);
+  }, [selected]);
 
   const runCodex = useCallback(
     async (text: string, selectedPath = selected?.relativePath || null) => {
@@ -355,6 +429,9 @@ export default function Workbench() {
           );
         }
         await Promise.all([loadLibrary(), loadInspirations(), loadHealth()]);
+        if (selected && filePreview?.relativePath === selected.relativePath) {
+          await openItem(selected);
+        }
         return true;
       } catch (error) {
         const message =
@@ -371,7 +448,7 @@ export default function Workbench() {
         setRunning(false);
       }
     },
-    [loadHealth, loadInspirations, loadLibrary, running, selected?.relativePath],
+    [filePreview, loadHealth, loadInspirations, loadLibrary, openItem, running, selected],
   );
 
   const sendPrompt = useCallback(
@@ -726,15 +803,34 @@ export default function Workbench() {
               <article className="file-preview">
                 <div className="file-preview-head">
                   <div>
-                    <span>{stageLabels[selected.stage] || selected.stage}</span>
+                    <span>
+                      {stageLabels[selected.stage] || selected.stage}
+                      {!filePreview.isImage ? " · 阅读模式" : ""}
+                    </span>
                     <h4>{selected.title}</h4>
                     <code>{selected.relativePath}</code>
                   </div>
                   <div className="preview-actions">
-                    {selected.type !== "cover" ? (
+                    {!filePreview.isImage ? (
+                      <button
+                        type="button"
+                        className={copiedPath === filePreview.relativePath ? "copy-button copied" : "copy-button"}
+                        onClick={() => void copyPreviewContent()}
+                      >
+                        {copiedPath === filePreview.relativePath ? "已复制" : "复制正文"}
+                      </button>
+                    ) : null}
+                    {selected.type === "brief" || selected.type === "idea" ? (
                       <button type="button" onClick={() => fillPrompt("script")}>继续做成口播</button>
                     ) : null}
-                    <button type="button" onClick={() => fillPrompt("cover")}>生成封面</button>
+                    {!filePreview.isImage ? (
+                      <button type="button" className="codex-edit-button" onClick={openRevisionConversation}>
+                        用 Codex 修改 ↗
+                      </button>
+                    ) : null}
+                    {selected.type === "script" || selected.type === "idea" ? (
+                      <button type="button" onClick={() => fillPrompt("cover")}>生成封面</button>
+                    ) : null}
                     <button type="button" onClick={() => setFilePreview(null)}>收起</button>
                   </div>
                 </div>
@@ -747,14 +843,16 @@ export default function Workbench() {
                     alt={selected.title}
                   />
                 ) : (
-                  <pre>{filePreview.content}</pre>
+                  <div className="markdown-reader markdown-body" ref={previewReaderRef}>
+                    <MarkdownContent content={filePreview.content || ""} />
+                  </div>
                 )}
               </article>
             ) : null}
           </section>
           </div>
 
-          <aside className="chat-panel" aria-label="Codex 对话">
+          <aside className="chat-panel" aria-label="Codex 对话" ref={chatPanelRef}>
             <div className="chat-heading">
               <div>
                 <span className="assistant-avatar">C</span>
@@ -779,11 +877,17 @@ export default function Workbench() {
               {messages.map((message) => (
                 <div key={message.id} className={`message message-${message.role}`}>
                   <span>{message.role === "user" ? "你" : "C"}</span>
-                  <p>
-                    {message.text || (
+                  <div className={message.role === "assistant" ? "message-body markdown-body" : "message-body"}>
+                    {message.text ? (
+                      message.role === "assistant" ? (
+                        <MarkdownContent content={message.text} />
+                      ) : (
+                        message.text
+                      )
+                    ) : (
                       <i className="typing-indicator"><b /><b /><b /></i>
                     )}
-                  </p>
+                  </div>
                 </div>
               ))}
               {running ? <div className="activity-line">◌ {activity}</div> : null}
