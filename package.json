@@ -4,6 +4,14 @@
   "private": true,
   "description": "A local-first AI creator workbench powered by the Codex SDK.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xue-feng-bai/codex-creator-workbench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xue-feng-bai/codex-creator-workbench/issues"
+  },
+  "homepage": "https://github.com/xue-feng-bai/codex-creator-workbench#readme",
   "engines": {
     "node": ">=22.13.0"
   },

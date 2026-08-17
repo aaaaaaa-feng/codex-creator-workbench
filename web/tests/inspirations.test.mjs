@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import { loadLatestInspirationBrief, parseInspirationBrief } from "../bridge/inspirations.mjs";
 
 test("parses one-line inspiration records from a Markdown brief", () => {
@@ -36,12 +37,24 @@ test("parses one-line inspiration records from a Markdown brief", () => {
   assert.equal(result.items[1].verification, "待核验");
 });
 
-test("loads the newest real AIHOT brief from the content workspace", async () => {
-  const workspaceRoot = fileURLToPath(new URL("../../", import.meta.url));
+test("loads a five-item AIHOT brief from a clean workspace", async (context) => {
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "creator-workbench-"));
+  context.after(() => rm(workspaceRoot, { recursive: true, force: true }));
+  const inbox = join(workspaceRoot, "00_收件箱");
+  await mkdir(inbox, { recursive: true });
+  const items = Array.from({ length: 5 }, (_, index) => `### ${index + 1}. 热点 ${index + 1}
+- 发生了什么：摘要 ${index + 1}。
+- 为什么重要：价值 ${index + 1}。
+- [AIHOT](https://aihot.example/items/${index + 1})
+- [原文](https://example.com/${index + 1})`).join("\n\n");
+  await writeFile(
+    join(inbox, "2026-08-18-0900-AIHOT简报.md"),
+    `# AIHOT 热点简报\n\n## 5 条重点资讯\n\n${items}\n`,
+    "utf8",
+  );
+
   const result = await loadLatestInspirationBrief(workspaceRoot);
-  const content = await readFile(new URL("../../00_收件箱/2026-08-17-AIHOT简报.md", import.meta.url), "utf8");
-  if (content.includes("## 5 条重点资讯")) {
-    assert.equal(result.items.length, 5);
-    assert.match(result.items[0].aihotUrl, /^https:\/\/aihot\.virxact\.com\/items\//);
-  }
+  assert.equal(result.items.length, 5);
+  assert.equal(result.items[0].title, "热点 1");
+  assert.match(result.items[0].aihotUrl, /^https:\/\/aihot\.example\/items\//);
 });
