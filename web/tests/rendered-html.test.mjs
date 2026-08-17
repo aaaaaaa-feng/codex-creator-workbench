@@ -24,12 +24,15 @@ test("server-renders the AI self-media workbench", async () => {
   const html = await response.text();
   assert.match(html, /<title>[^<]*AI 自媒体工作台<\/title>/i);
   assert.match(html, /AI 自媒体工作台/);
+  assert.match(html, /极简创作/);
+  assert.match(html, /专业模式/);
+  assert.match(html, /本地自动保存/);
   assert.match(html, /采集今日热点/);
-  assert.match(html, /勾选后生成科普稿/);
-  assert.match(html, /生成 6 张封面/);
-  assert.match(html, /今日灵感池/);
-  assert.match(html, /打包生成科普稿/);
-  assert.match(html, /Codex 内容搭档/);
+  assert.match(html, /教程视频/);
+  assert.match(html, /多平台内容包/);
+  assert.match(html, /选一个想讲的热点/);
+  assert.match(html, /生成热点口播/);
+  assert.match(html, /需要微调？直接告诉 Codex/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
 });
 
@@ -52,6 +55,12 @@ test("keeps the local Codex bridge and removes starter artifacts", async () => {
   assert.match(workbench, /用 Codex 修改/);
   assert.match(workbench, /阅读模式/);
   assert.match(workbench, /openRevisionConversation/);
+  assert.match(workbench, /勾选后生成科普稿/);
+  assert.match(workbench, /生成 6 张封面/);
+  assert.match(workbench, /creator-workbench-mode/);
+  assert.match(workbench, /creator-workbench-prompt-draft/);
+  assert.match(workbench, /creator-workbench-idea-draft/);
+  assert.match(workbench, /creator-workbench-content-type/);
   assert.match(packageJson, /@openai\/codex-sdk/);
   assert.match(packageJson, /react-markdown/);
   assert.match(packageJson, /remark-gfm/);

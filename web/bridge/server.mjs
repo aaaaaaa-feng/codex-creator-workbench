@@ -2,12 +2,9 @@ import { Codex } from "@openai/codex-sdk";
 import { createReadStream } from "node:fs";
 import {
   access,
-  mkdir,
   readFile,
   readdir,
-  rename,
   stat,
-  writeFile,
 } from "node:fs/promises";
 import { createServer } from "node:http";
 import { homedir } from "node:os";
@@ -23,15 +20,21 @@ import {
 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadLatestInspirationBrief } from "./inspirations.mjs";
+import {
+  emptyLocalState,
+  loadLocalState,
+  saveLocalState,
+} from "./local-state.mjs";
 
 const BRIDGE_DIR = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(BRIDGE_DIR, "..");
 const WORKSPACE_ROOT = process.env.WORKBENCH_CONTENT_ROOT
   ? resolve(process.env.WORKBENCH_CONTENT_ROOT)
   : resolve(WEB_ROOT, "..");
-const STATE_DIR = join(WEB_ROOT, ".workbench");
+const STATE_DIR = process.env.WORKBENCH_STATE_DIR
+  ? resolve(process.env.WORKBENCH_STATE_DIR)
+  : join(WEB_ROOT, ".workbench");
 const STATE_PATH = join(STATE_DIR, "state.json");
-const STATE_TEMP_PATH = join(STATE_DIR, "state.tmp.json");
 const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.WORKBENCH_PORT || "4317", 10);
 const ALLOWED_ORIGINS = new Set([
@@ -55,33 +58,10 @@ const codex = new Codex();
 let activeThread = null;
 let turnInProgress = false;
 
-await mkdir(STATE_DIR, { recursive: true });
-let state = await loadState();
-
-function emptyState() {
-  return { threadId: null, messages: [] };
-}
-
-async function loadState() {
-  try {
-    const parsed = JSON.parse(await readFile(STATE_PATH, "utf8"));
-    return {
-      threadId: typeof parsed.threadId === "string" ? parsed.threadId : null,
-      messages: Array.isArray(parsed.messages) ? parsed.messages.slice(-60) : [],
-    };
-  } catch {
-    return emptyState();
-  }
-}
+let state = await loadLocalState(STATE_PATH);
 
 async function saveState() {
-  const payload = JSON.stringify(
-    { threadId: state.threadId, messages: state.messages.slice(-60) },
-    null,
-    2,
-  );
-  await writeFile(STATE_TEMP_PATH, payload, "utf8");
-  await rename(STATE_TEMP_PATH, STATE_PATH);
+  await saveLocalState(STATE_PATH, state);
 }
 
 function isAllowedOrigin(request) {
@@ -481,7 +461,7 @@ const server = createServer(async (request, response) => {
         return;
       }
       activeThread = null;
-      state = emptyState();
+      state = emptyLocalState();
       await saveState();
       sendJson(request, response, 200, { ok: true });
       return;
