@@ -22,6 +22,7 @@
 - 将 `actions/checkout` 与 `actions/setup-node` 从 v4 更新到官方当前示例使用的 v7，用于消除旧 Node.js Action 运行时弃用提示；项目测试版本仍保持 Node.js 22.13。
 - 本地通过 ESLint、生产构建和 6 项自动化测试；浏览器验证了刷新恢复、双模式切换和热点选择状态。
 - 极简持久化版本 `fe1d048` 的 GitHub Actions lint、build 和 test 均通过；本次 v7 升级的远端结果在推送后继续追加，不提前标记为通过。
+- 新版工作流在 [GitHub Actions #32044904614](https://github.com/aaaaaaa-feng/codex-creator-workbench/actions/runs/32044904614) 中通过 checkout、依赖安装、lint、build 和 6 项测试，且不再出现旧 Node.js Action 运行时弃用提示。
 
 ## 0.2.0 - 2026-08-17
 
